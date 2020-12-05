@@ -1,4 +1,5 @@
 import {useEffect} from 'react';
+import context from './audioContext'
 
 type Energies = {
     high: number[];
@@ -11,25 +12,22 @@ type FilterArg = {
 }
 
 class Decoder {
-    context: AudioContext;
     onDecode: (decoded: string) => void;
 
     constructor(onDecode: (decoded: string) => void) {
-        const audioContext = window.AudioContext || (window as any).webkitAudioContext;
-        this.context = new audioContext();
         this.onDecode = onDecode;
 
         const success = (stream: MediaStream) => {
             const DTMF = require('goertzeljs/lib/dtmf');
             const Goertzel = require('goertzeljs');
-            const volume = this.context.createGain();
-            const audioInput = this.context.createMediaStreamSource(stream);
+            const volume = context.createGain();
+            const audioInput = context.createMediaStreamSource(stream);
             audioInput.connect(volume);
             const bufferSize = 512;
             // TODO Rewrite this deprecated method
-            const recorder = this.context.createScriptProcessor(bufferSize, 1, 1);
+            const recorder = context.createScriptProcessor(bufferSize, 1, 1);
             const dtmf = new DTMF({
-                sampleRate: this.context.sampleRate,
+                sampleRate: context.sampleRate,
                 repeatMin: 6,
                 downsampleRate: 1,
                 energyThreshold: 0.005,
@@ -47,7 +45,7 @@ class Decoder {
                 dtmf.processBuffer(buffer);
             };
             volume.connect (recorder);
-            recorder.connect (this.context.destination) ;
+            recorder.connect (context.destination) ;
         };
 
         const getUserMedia = navigator.getUserMedia ||
@@ -56,16 +54,10 @@ class Decoder {
               (navigator as any).msGetUserMedia;
 
         if (getUserMedia){
-            console.log('setting up an audio context');
             getUserMedia.call(navigator, {audio:true}, success, function(e) {
                 alert('Error capturing audio.');
             });
         } else alert('getUserMedia not supported in this browser.');
-    }
-
-    close() {
-        console.log('closing the audio context');
-        this.context.close();
     }
 }
 
