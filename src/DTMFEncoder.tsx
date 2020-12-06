@@ -7,8 +7,8 @@ type Props = {
 
 function DTMFEncoder(props: Props) {
     const [dtmfString, setDtmfString] = useState('');
-    const [dtmfDuration, setDtmfDuration] = useState('0.1');
-    const [dtmfInterval, setDtmfInterval] = useState('0.05');
+    const [dtmfDuration, setDtmfDuration] = useState('0.04');
+    const [dtmfInterval, setDtmfInterval] = useState('0.02');
 
     const onChangeDtmfString = useCallback((event) => {
         setDtmfString(event.target.value);
@@ -36,18 +36,21 @@ function DTMFEncoder(props: Props) {
     }, [duration, interval, dtmfString]);
 
     return <div>
-               <label htmlFor="dtmfDuration">Duration [s]</label>
-               <input type="text" value={dtmfDuration} onChange={onChangeDtmfDuration} />
-
-               <label htmlFor="dtmfInterval">Interval [s]</label>
-               <input type="text" value={dtmfInterval} onChange={onChangeDtmfInterval} />
 
                <label htmlFor="dtmfMessage">DTMF Message</label>
                <input name="dtmfMessage" type="text" value={dtmfString} onChange={onChangeDtmfString} />
 
-               <button onClick={onStart}>
-                   Send DTMF
-               </button>
+               <div>
+                   <label htmlFor="dtmfDuration">Duration [s]</label>
+                   <input type="text" value={dtmfDuration} onChange={onChangeDtmfDuration} />
+
+                   <label htmlFor="dtmfInterval">Interval [s]</label>
+                   <input type="text" value={dtmfInterval} onChange={onChangeDtmfInterval} />
+                   <button onClick={onStart}>
+                       Send DTMF
+                   </button>
+               </div>
+
            </div>;
 }
 
