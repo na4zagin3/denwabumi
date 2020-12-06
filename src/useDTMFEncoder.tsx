@@ -75,13 +75,16 @@ export function sendDTMF(message: string, options: Options) {
     const {duration, interval, gain} = options
     const currentTime = context.currentTime;
 
-    message.split('').forEach((c, i) => {
-        const startTime = currentTime + i * (duration + interval);
-        createOscillators(dtmf[c], duration, {
-            startTime,
-            gain,
-            onEnd: () => {
-                console.log('end sound');
+    message
+        .split('')
+        .filter((c) => dtmf[c] !== undefined)
+        .forEach((c, i) => {
+            const startTime = currentTime + i * (duration + interval);
+            createOscillators(dtmf[c], duration, {
+                startTime,
+                gain,
+                onEnd: () => {
+                    console.log('end sound');
             }});
-    })
+        })
 }
