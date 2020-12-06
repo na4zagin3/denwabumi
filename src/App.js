@@ -19,7 +19,9 @@ function App() {
           <header className="App-header">
             Data transmitter via audio (under construction)
           </header>
+          <h2>Encoder</h2>
           <DTMFEncoder/>
+          <h2>Decoder</h2>
           <DTMFDecoder/>
         </div>
     );
