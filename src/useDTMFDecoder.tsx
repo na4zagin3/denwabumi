@@ -83,9 +83,7 @@ const decoder = new Decoder(() => {});
 
 const useDecoder = (onDecode: (decoded: string) => void) => {
 
-    useEffect(() => {
-        decoder.onDecode = onDecode
-    }, [onDecode]);
+    decoder.onDecode = onDecode
 
 };
 
