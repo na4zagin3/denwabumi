@@ -37,32 +37,16 @@ const dtmf: {[s: string]: [number, number]} = {
   D: [freqs.L_941, freqs.H_1633]
 }
 
-function createOscillator(freq: number, duration: number, startTime?: number, gain = 0.1) {
+function createOscillatorAndGain(): [OscillatorNode, GainNode] {
     const oscillator = context.createOscillator();
     oscillator.type = 'sine';
-    oscillator.frequency.value = freq;
 
     const gainNode = context.createGain();
-    gainNode.gain.value = gain;
-
     oscillator.connect(gainNode);
     gainNode.connect(context.destination);
 
-    const time = startTime === undefined ? context.currentTime : startTime;
-    oscillator.start(time);
-    oscillator.stop(time + duration);
-
-
-    return oscillator;
+    return [oscillator, gainNode];
 };
-
-function createOscillators(freqs: [number, number], duration: number, options: {startTime?: number, gain?: number, onEnd?: () => void}) {
-    const osc1 = createOscillator(freqs[0], duration, options.startTime, options.gain);
-    createOscillator(freqs[1], duration, options.startTime, options.gain);
-    if (options.onEnd !== undefined) {
-        osc1.onended = options.onEnd
-    }
-}
 
 type Options = {
     duration: number,
@@ -72,19 +56,36 @@ type Options = {
 };
 
 export function sendDTMF(message: string, options: Options) {
-    const {duration, interval, gain} = options
+    const {duration, interval} = options
+    const gain = options.gain || 0.5;
     const currentTime = context.currentTime;
 
-    message
+    const [osc1, gain1] = createOscillatorAndGain();
+    const [osc2, gain2] = createOscillatorAndGain();
+
+    const freqList = message
         .split('')
-        .filter((c) => dtmf[c] !== undefined)
+        .filter((c) => dtmf[c] !== undefined);
+
+    gain1.gain.value = gain;
+    gain2.gain.value = gain;
+
+    freqList
         .forEach((c, i) => {
             const startTime = currentTime + i * (duration + interval);
-            createOscillators(dtmf[c], duration, {
-                startTime,
-                gain,
-                onEnd: () => {
-                    console.log('end sound');
-            }});
+            osc1.frequency.setValueAtTime(dtmf[c][0], startTime);
+            osc2.frequency.setValueAtTime(dtmf[c][1], startTime);
+
+            gain1.gain.setValueAtTime(0, startTime);
+            gain2.gain.setValueAtTime(0, startTime);
+            gain1.gain.setValueAtTime(gain, startTime + interval);
+            gain2.gain.setValueAtTime(gain, startTime + interval);
         })
+
+    osc1.start();
+    osc2.start();
+
+    const endTime = currentTime + freqList.length * (duration + interval);
+    osc1.stop(endTime);
+    osc2.stop(endTime);
 }
