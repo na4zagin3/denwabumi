@@ -4,7 +4,7 @@ type DTMFInstruction = {
 };
 
 const opAnnounce = "0";
-const opSize = "000";
+const opSize = "888";
 const opEnd = "999";
 const opData = "1";
 
