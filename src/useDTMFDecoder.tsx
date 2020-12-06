@@ -24,6 +24,7 @@ class Decoder {
             const audioInput = context.createMediaStreamSource(stream);
             audioInput.connect(volume);
             const bufferSize = 512;
+            const windowSkip = 128;
             // TODO Rewrite this deprecated method
             const recorder = context.createScriptProcessor(bufferSize, 1, 1);
             const dtmf = new DTMF({
@@ -40,9 +41,25 @@ class Decoder {
                     this.onDecode(value);
                 }
             });
+            const previousBuffer = new Float32Array(bufferSize);
+            previousBuffer.fill(0);
+            const windowBuffer = new Float32Array(bufferSize);
             recorder.onaudioprocess = function(e: AudioProcessingEvent){
                 var buffer = e.inputBuffer.getChannelData(0);
-                dtmf.processBuffer(buffer);
+
+                const count = Math.floor(bufferSize / windowSkip);
+                [...Array(count)].forEach((_, i) => {
+                    const offset = i * windowSkip;
+                    if (offset < bufferSize) {
+                        windowBuffer.set(previousBuffer.slice(offset));
+                    }
+                    if (offset > 0) {
+                        windowBuffer.set(previousBuffer.slice(0, offset), bufferSize - offset);
+                    }
+                    dtmf.processBuffer(windowBuffer);
+                })
+
+                previousBuffer.set(buffer);
             };
             volume.connect (recorder);
             recorder.connect (context.destination) ;
