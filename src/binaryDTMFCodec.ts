@@ -10,14 +10,16 @@ const opData = "1";
 
 const currentVersion = "1";
 
-function dedupe(input: string) {
-    return input.replace(/(.)\1/g, "$1A")
+function dupe(input: string) {
+    return input
+        .replace(/(.)\1/g, "$1A")
+        .replace(/([*])\1/g, "$1$1");
 }
 
-function redupe(input: string) {
+function dedupe(input: string) {
     return input
         .replace(/(.)\1*/g, "$1")
-        .replace(/(.)A/g, "$1$1")
+        .replace(/(.)A/g, "$1$1");
 }
 
 
@@ -41,7 +43,7 @@ export function encodeToDTMF(input: Uint8Array) {
 
     strings.push(`\n*${opEnd}#0`)
 
-    return dedupe(strings.join(''));
+    return dupe(strings.join(''));
 }
 
 function mode<T>(arr: T[]){
@@ -51,14 +53,12 @@ function mode<T>(arr: T[]){
 }
 
 export function decodeFromDTMF(origInput: string): Uint8Array | null {
-    const input = redupe(origInput);
-    console.log('dedupe', input, origInput);
+    const input = dedupe(origInput);
 
     let index = 0;
     let buffer = null;
 
     while (index !== -1) {
-        console.log('index', index);
 
         const result = parseDTMFInstruction(input, index);
         const instr = result.instr;
@@ -93,7 +93,14 @@ export function decodeFromDTMF(origInput: string): Uint8Array | null {
                     console.log('missing header');
                     return null;
                 }
-                buffer.set(bytes, offset);
+                if (offset > buffer.length) {
+                    console.log('invalid offset', {offset, fragment: bytes.length, buffer: buffer.length});
+                } else if (offset + bytes.length > buffer.length) {
+                    console.log('too long fragment', {offset, fragment: bytes.length, buffer: buffer.length});
+                    buffer.set(bytes.slice(0, buffer.length - offset), offset);
+                } else {
+                    buffer.set(bytes, offset);
+                }
                 break;
             case opEnd:
                 console.log('end');
