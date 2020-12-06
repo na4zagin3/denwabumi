@@ -37,3 +37,7 @@
     }
 }
 
+.Decoder-dtmf {
+    height: 10em;
+    white-space: pre-line;
+}

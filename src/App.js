@@ -3,6 +3,7 @@ import logo from './logo.svg';
 import './App.css';
 import useDecoder from './useDTMFDecoder';
 import DTMFEncoder from './DTMFEncoder';
+import DTMFDecoder from './DTMFDecoder';
 
 function App() {
     const [decoded, setDecoded] = useState('');
@@ -19,9 +20,7 @@ function App() {
             Data transmitter via audio (under construction)
           </header>
           <DTMFEncoder/>
-          <div className="Decoder">
-            DTMF Decoded: {decoded}
-          </div>
+          <DTMFDecoder/>
         </div>
     );
 }
